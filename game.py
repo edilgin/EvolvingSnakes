@@ -45,7 +45,7 @@ class game_control:
         if snake_rect.colliderect(food_rect):
             snake.create_food()
             snake.add_node()
-            snake.score += 20 * len(snake.position)
+            snake.score += 40
             snake.counter = 0
 
     def board_update(self, snake):
@@ -232,11 +232,12 @@ while True:
                 max_score = snake.score
             if snake.game_over:
                 snakes.remove(snake)
+                snake.reset()
                 dead_snakes.append(snake)
                 controllers.remove(controller)
     else:
         controllers = create_controllers()
-        snakes = ga.roulette_wheel(dead_snakes)
+        snakes = ga.choose_snakes(dead_snakes)
         dead_snakes.clear()
         gen +=1
         print("gen: {} max:{}".format(gen,max_score))

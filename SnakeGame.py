@@ -53,7 +53,7 @@ class Snake:
             self.position.append([self.position[-1][0] + self.node_size, self.position[-1][1]])
 
     def predict(self, inputs):
-        X = np.array(inputs).flatten()
+        X = np.array(inputs).flatten()          # X = inputs
         prediction = self.brain.forwardProp(X)
         change = "up"
         if prediction == 0:
