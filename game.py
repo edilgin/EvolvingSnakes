@@ -1,55 +1,52 @@
-from SnakeGame import Snake
+from Snake import Snake
 from Genetics import GeneticAlgorithm
-import numpy as np
 import pygame
+import time
+
+import numpy as np
+import random
+import pickle
 
 class game_control:
-    def __init__(self, game_cols, game_rows, col_row_size, space, x_pos_board, y_pos_board):
+    def __init__(self, col_row_size, space):
         self.board = []
-        self.columns = game_cols
-        self.rows = game_rows
         self.col_row_size = col_row_size
         self.space = space
         self.node_size = self.col_row_size + self.space     # node size is space and the row size combined
 
-        self.x_pos_board = x_pos_board
-        self.y_pos_board = y_pos_board
-
-        self.snake_start_x = (self.columns // 2) * self.node_size
-        self.snake_start_y = (self.rows // 2 ) * self.node_size
-
     def draw(self, snake):
-        food_x = snake.food_pos[0] + self.x_pos_board
-        food_y = snake.food_pos[1] + self.y_pos_board
+        food_x = snake.food_pos[0]
+        food_y = snake.food_pos[1]
+        headx = snake.position[0][0]
+        heady = snake.position[0][1]
 
+        food_x = food_x * self.node_size
+        food_y = food_y * self.node_size
         pygame.draw.rect(screen, "red", (food_x, food_y, self.col_row_size, self.col_row_size))
-        grid_width = (self.node_size * self.columns) - self.space
-        grid_height = (self.node_size * self.rows) - self.space
-        headx, heady = snake.position[0][0], snake.position[0][1]
 
-        if 0 < headx < grid_width:
-            if 0 < heady < grid_height:
-                pygame.draw.rect(screen, "green", (headx + self.x_pos_board, heady+ self.y_pos_board, self.col_row_size, self.col_row_size))
+        pygame.draw.rect(screen, "green", (headx * self.node_size, heady * self.node_size, self.col_row_size, self.col_row_size))
         for node in snake.position[1:]:
-            node_x = node[0] + self.x_pos_board
-            node_y = node[1] + self.y_pos_board
+            node_x = node[0] * self.node_size
+            node_y = node[1] * self.node_size
             pygame.draw.rect(screen, "green", (node_x, node_y, self.col_row_size, self.col_row_size))
 
-
     def check_snake(self, snake):
-        snake_rect = pygame.Rect(snake.position[0][0], snake.position[0][1], self.col_row_size, self.col_row_size)
-        food_rect = pygame.Rect(snake.food_pos[0], snake.food_pos[1], self.col_row_size, self.col_row_size)
-
         if snake.counter == 120:
             snake.game_over = True
-        if snake_rect.colliderect(food_rect):
+
+        food_x = snake.food_pos[0]
+        food_y = snake.food_pos[1]
+        snake_x = snake.position[0][0]
+        snake_y = snake.position[0][1]
+
+        if  snake_x == food_x and  snake_y == food_y:
             snake.create_food()
             snake.add_node()
-            snake.score += 40
+            snake.score += 20 * len(snake.position)
             snake.counter = 0
 
     def board_update(self, snake):
-        self.board = [[0 for _ in range(self.columns+1)] for _ in range(self.rows+1)]
+        self.board = [[0 for _ in range(11)] for _ in range(11)]
 
         for i in range(len(self.board[0])):
             self.board[0][i] = -2
@@ -71,7 +68,7 @@ class game_control:
         return self.board
 
     def vision(self, snake):
-        vision_snake = [0 for _ in range(20)]
+        vision_snake = np.array([0 for _ in range(20)])
 
         head_x, head_y = snake.position[0][0], snake.position[0][1]
         food_x, food_y = snake.food_pos[0], snake.food_pos[1]
@@ -125,102 +122,64 @@ class game_control:
                     vision_snake[15] = ((head_x - tail_x) ** 2 + (head_y - tail_y) ** 2) ** (1 / 2)
 
         vision_snake[16] = head_x
-        vision_snake[17] = ((self.columns * self.node_size) - self.space) - head_x
+        vision_snake[17] = 9 - head_x
         vision_snake[18] = head_y
-        vision_snake[19] = ((self.rows * self.node_size) - self.space) - head_y
+        vision_snake[19] = 9 - head_y
 
+        vision_snake = vision_snake / 10
 
         return vision_snake
 
     def check_death(self, snake):
         # check if player hit a wall
-        grid_width = (self.node_size * self.columns) - self.space
-        grid_height = (self.node_size * self.rows) - self.space
-
-        if 0 > snake.position[0][0] or grid_width < snake.position[0][0]:
+        snake_x = snake.position[0][0]
+        snake_y = snake.position[0][1]
+        if 0 > snake_x or 9 < snake_x:
             snake.game_over = True
-        if 0 > snake.position[0][1] or grid_height < snake.position[0][1]:
+        if 0 > snake_y or 9 < snake_y:
             snake.game_over = True
 
         # check if the player hit itself
-        snake_head = pygame.Rect(snake.position[0][0], snake.position[0][1], self.col_row_size, self.col_row_size)
         for node in snake.position[1:]:
-            node = pygame.Rect(node[0], node[1], self.col_row_size, self.col_row_size)
-            if snake_head.colliderect(node):
+            if snake_x == node[0] and snake_y == node[1]:
                 snake.game_over = True
         snake.counter += 1
         if snake.counter > 100:
             snake.game_over = True
 
+def create_controllers(gen_size):
+    controller_list = []
+    for j in range(gen_size):
+        controller_list.append(game_control(col_row_size, spaces))
+    return controller_list
 
-def draw_grids(grids_x, grids_y, cols, rows, size, spaces):
-    x = ((size + spaces) * cols) - spaces
-    y = ((size + spaces) * rows) - spaces
-    x_pos_board = 0
-    y_pos_board = 0
-    for i in range(grids_x):                # 10
-        for j in range(grids_y):            # 6
-            pygame.draw.rect(screen, "grey", (x_pos_board, y_pos_board, x, y), width=2)
-            x_pos_board = x * i
-            y_pos_board = y * j
-    pygame.draw.rect(screen, "grey", (x_pos_board, y_pos_board, x, y), width=2)
-
-
-cols=10
-rows=10
-col_row_size=10
-spaces=2
+col_row_size=30
+spaces=10
 node_size = col_row_size + spaces
-
 
 snakes = []
 prev_gen_snakes = []
 
-SCREEN_WIDTH = 1420
-SCREEN_HEIGHT = 710
-
-pygame.init()
-
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))     # set screen size
-clock = pygame.time.Clock()                     # clock will be used for determining frames per second
+SCREEN_WIDTH = 390
+SCREEN_HEIGHT = 390
 
 pop_size = 1000
 
-screen_x = (node_size * cols) - spaces
-screen_y = (node_size *rows) - spaces
-
-def create_controllers():
-    controller_list = []
-    x, y = 0, 0
-    for j in range(10):
-        for i in range(100):
-            controller_list.append(game_control(cols,rows, col_row_size, spaces,x, y))
-            x = ((cols * node_size) - spaces) * i
-            y = ((rows * node_size) - spaces) * j
-    return controller_list
-
-controllers = create_controllers()
+controllers = create_controllers(pop_size)
 gen = 0
-max_score = 0
-ga = GeneticAlgorithm(cols, rows, node_size, controllers[0].snake_start_x, controllers[0].snake_start_y)
+ga = GeneticAlgorithm()
 snakes = ga.initiate_population(snakes, pop_size)
 dead_snakes = []
+fittest_snakes_each_gen = []
+generation_length = 40
+max_score = 0
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-
-    screen.fill("black")
-    draw_grids(12,6,10,10,10,2)
-
-    if len(snakes) != 0:
-        max_score = 0
-
+for generation in range(generation_length):
+    max_score = 0
+    while len(snakes) != 0:
+        fittest_snakes_each_gen.append(snakes[0])
         for snake, controller in zip(snakes, controllers):
             snake.move()
-            controller.draw(snake)
             controller.check_snake(snake)
             inputs = controller.vision(snake)
             snake.predict(inputs)
@@ -228,19 +187,40 @@ while True:
             snake.score += 1
             snake.counter += 1
 
-            if snake.score > max_score:
+            if snake.score > fittest_snakes_each_gen[generation].score:
+                fittest_snakes_each_gen[generation] = snake
                 max_score = snake.score
             if snake.game_over:
                 snakes.remove(snake)
-                snake.reset()
                 dead_snakes.append(snake)
                 controllers.remove(controller)
     else:
-        controllers = create_controllers()
-        snakes = ga.choose_snakes(dead_snakes)
+        controllers = create_controllers(pop_size)
+        snakes = ga.roulette_wheel(dead_snakes)
         dead_snakes.clear()
-        gen +=1
-        print("gen: {} max:{}".format(gen,max_score))
+        gen += 1
+        print("gen: {} max:{}".format(gen, max_score))
 
-    pygame.display.update()
-    clock.tick(100)
+pygame.init()
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))     # set screen size
+clock = pygame.time.Clock()                                         # clock will be used for determining frames per second
+
+for generation in range(generation_length):
+    current_snake = fittest_snakes_each_gen[generation]
+    current_snake.reset()
+    controller = game_control(col_row_size, spaces)
+    while not current_snake.game_over:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+        screen.fill("black")
+        current_snake.move()
+        controller.draw(current_snake)
+        controller.check_snake(current_snake)
+        inputs = controller.vision(current_snake)
+        current_snake.predict(inputs)
+        controller.check_death(current_snake)
+        current_snake.counter += 1
+        pygame.display.update()
+        time.sleep(0.06)
