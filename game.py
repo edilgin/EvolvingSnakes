@@ -31,7 +31,7 @@ class game_control:
             pygame.draw.rect(screen, "green", (node_x, node_y, self.col_row_size, self.col_row_size))
 
     def check_snake(self, snake):
-        if snake.counter == 120:
+        if snake.counter == 140:
             snake.game_over = True
 
         food_x = snake.food_pos[0]
@@ -42,33 +42,11 @@ class game_control:
         if  snake_x == food_x and  snake_y == food_y:
             snake.create_food()
             snake.add_node()
-            snake.score += 20 * len(snake.position)
+            snake.score += (20 * len(snake.position))
             snake.counter = 0
 
-    def board_update(self, snake):
-        self.board = [[0 for _ in range(11)] for _ in range(11)]
-
-        for i in range(len(self.board[0])):
-            self.board[0][i] = -2
-            self.board[-1][i] = -2
-            self.board[i][0] = -2
-            self.board[i][-1] = -2
-
-        food_x = snake.food_pos[0] // self.node_size
-        food_y = snake.food_pos[1] // self.node_size
-
-        snake_head_x = snake.position[0][0] // self.node_size
-        snake_head_y = snake.position[0][1] // self.node_size
-        self.board[food_y-1][food_x-1] = 1
-        self.board[snake_head_y-1][snake_head_x-1] = -1
-
-        for node in snake.position[1:]:
-            x,y = node[0] // self.col_row_size, node[1] // self.col_row_size
-            self.board[y-1][x-1] = -1
-        return self.board
-
     def vision(self, snake):
-        vision_snake = np.array([0 for _ in range(20)])
+        vision_snake = [0 for _ in range(24)]
 
         head_x, head_y = snake.position[0][0], snake.position[0][1]
         food_x, food_y = snake.food_pos[0], snake.food_pos[1]
@@ -125,7 +103,12 @@ class game_control:
         vision_snake[17] = 9 - head_x
         vision_snake[18] = head_y
         vision_snake[19] = 9 - head_y
+        vision_snake[20] = (head_x**2 + head_y**2)**(1/2)
+        vision_snake[21] = (head_x**2 + (9-head_y)**2)**(1/2)
+        vision_snake[22] = ((9-head_x)**2 + head_y**2)**(1/2)
+        vision_snake[23] = ((9-head_x)**2 + (9-head_y)**2)**(1/2)
 
+        vision_snake = np.array(vision_snake)
         vision_snake = vision_snake / 10
 
         return vision_snake
@@ -163,7 +146,7 @@ prev_gen_snakes = []
 SCREEN_WIDTH = 390
 SCREEN_HEIGHT = 390
 
-pop_size = 1000
+pop_size = 2000
 
 controllers = create_controllers(pop_size)
 gen = 0
@@ -171,7 +154,7 @@ ga = GeneticAlgorithm()
 snakes = ga.initiate_population(snakes, pop_size)
 dead_snakes = []
 fittest_snakes_each_gen = []
-generation_length = 40
+generation_length = 20
 max_score = 0
 
 for generation in range(generation_length):
