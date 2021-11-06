@@ -13,7 +13,7 @@ class Snake:
         self.food_pos = [random.randint(0, 9), random.randint(0, 9)]
         self.weights = weights
         # create the brain for the snake and initialize it
-        self.brain = NeuralNetwork([24,15,15,4])
+        self.brain = NeuralNetwork([24, 15, 15, 4])
 
         if len(self.weights) == 0:
             self.brain.initializeNetwork()
@@ -51,6 +51,7 @@ class Snake:
         X = np.array(inputs).flatten()          # X = inputs
         prediction = self.brain.forwardProp(X)
         change = "up"
+
         if prediction == 0:
             change = "up"
         if prediction == 1:

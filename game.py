@@ -1,15 +1,10 @@
-from Snake import Snake
 from Genetics import GeneticAlgorithm
 import pygame
 import time
-
 import numpy as np
-import random
-import pickle
 
-class game_control:
+class game_control:                                                 # write a class for playing the game
     def __init__(self, col_row_size, space):
-        self.board = []
         self.col_row_size = col_row_size
         self.space = space
         self.node_size = self.col_row_size + self.space     # node size is space and the row size combined
@@ -31,9 +26,6 @@ class game_control:
             pygame.draw.rect(screen, "green", (node_x, node_y, self.col_row_size, self.col_row_size))
 
     def check_snake(self, snake):
-        if snake.counter == 140:
-            snake.game_over = True
-
         food_x = snake.food_pos[0]
         food_y = snake.food_pos[1]
         snake_x = snake.position[0][0]
@@ -42,7 +34,7 @@ class game_control:
         if  snake_x == food_x and  snake_y == food_y:
             snake.create_food()
             snake.add_node()
-            snake.score += (20 * len(snake.position))
+            snake.score += 1
             snake.counter = 0
 
     def vision(self, snake):
@@ -54,62 +46,59 @@ class game_control:
 
         if head_x - food_x == 0:
             if head_y > food_y:                         # if the food is above the snake
-                vision_snake[0] = head_y - food_y
+                vision_snake[0] = 1
             else:                                       # if the food is below the snake
-                vision_snake[1] = food_y - head_y
+                vision_snake[1] = 1
 
         if head_y - food_y == 0:
             if head_x > food_x:                         # if the food is left to the snake
-                vision_snake[2] = head_x - food_x
+                vision_snake[2] = 1
             else:                         # if the food is right to the snake
-                vision_snake[3] = food_x - head_x
+                vision_snake[3] = 1
 
         if head_x - food_x == head_y - food_y:       # if the food is diagonal to the snake
             if head_x - food_x > 0:
                 if head_y - food_y > 0:
-                    vision_snake[4] = ((head_x - food_x)**2 + (head_y - food_y)**2)**(1/2)
+                    vision_snake[4] = 1
                 else:
-                    vision_snake[5] = ((head_x - food_x)**2 + (head_y - food_y)**2)**(1/2)
+                    vision_snake[5] = 1
             else:
                 if head_y - food_y > 0:
-                    vision_snake[6] = ((head_x - food_x)**2 + (head_y - food_y)**2)**(1/2)
+                    vision_snake[6] = 1
                 else:
-                    vision_snake[7] = ((head_x - food_x)**2 + (head_y - food_y)**2)**(1/2)
+                    vision_snake[7] = 1
 
         if head_x - tail_x == 0:
             if head_y > tail_y:                             # if the tail is above the snake
-                vision_snake[8] = head_y - tail_y
+                vision_snake[8] = 1
             else:                                           # if the tail is below the snake
-                vision_snake[9] = tail_y - head_y
+                vision_snake[9] = 1
         if head_y - tail_y == 0:
             if head_x > tail_x:                             # if the tail is left to the snake
-                vision_snake[10] = head_x - tail_x
+                vision_snake[10] = 1
             else:                                           # if the tail is right to the snake
-                vision_snake[11] = tail_x - head_x
+                vision_snake[11] = 1
 
         if head_x - tail_x == head_y - tail_y:              # if the tail is diagonal to the snake
             if head_x - tail_x > 0:
                 if head_y - tail_y > 0:
-                    vision_snake[12] = ((head_x - tail_x) ** 2 + (head_y - tail_y) ** 2) ** (1 / 2)
+                    vision_snake[12] = 1
                 else:
-                    vision_snake[13] = ((head_x - tail_x) ** 2 + (head_y - tail_y) ** 2) ** (1 / 2)
+                    vision_snake[13] = 1
             else:
                 if head_y - food_y > 0:
-                    vision_snake[14] = ((head_x - tail_x) ** 2 + (head_y - tail_y) ** 2) ** (1 / 2)
+                    vision_snake[14] = 1
                 else:
-                    vision_snake[15] = ((head_x - tail_x) ** 2 + (head_y - tail_y) ** 2) ** (1 / 2)
+                    vision_snake[15] = 1
 
-        vision_snake[16] = head_x
-        vision_snake[17] = 9 - head_x
-        vision_snake[18] = head_y
-        vision_snake[19] = 9 - head_y
-        vision_snake[20] = (head_x**2 + head_y**2)**(1/2)
-        vision_snake[21] = (head_x**2 + (9-head_y)**2)**(1/2)
-        vision_snake[22] = ((9-head_x)**2 + head_y**2)**(1/2)
-        vision_snake[23] = ((9-head_x)**2 + (9-head_y)**2)**(1/2)
-
-        vision_snake = np.array(vision_snake)
-        vision_snake = vision_snake / 10
+        vision_snake[16] = head_x / 10
+        vision_snake[17] = (9 - head_x) / 10
+        vision_snake[18] = head_y / 10
+        vision_snake[19] = (9 - head_y) / 10
+        vision_snake[20] = ((head_x**2 + head_y**2)**(1/2)) / 10
+        vision_snake[21] = ((head_x**2 + (9-head_y)**2)**(1/2)) / 10
+        vision_snake[22] = (((9-head_x)**2 + head_y**2)**(1/2)) / 10
+        vision_snake[23] = (((9-head_x)**2 + (9-head_y)**2)**(1/2)) / 10
 
         return vision_snake
 
@@ -127,14 +116,9 @@ class game_control:
             if snake_x == node[0] and snake_y == node[1]:
                 snake.game_over = True
         snake.counter += 1
-        if snake.counter > 100:
-            snake.game_over = True
 
-def create_controllers(gen_size):
-    controller_list = []
-    for j in range(gen_size):
-        controller_list.append(game_control(col_row_size, spaces))
-    return controller_list
+        if snake.counter > 120:
+            snake.game_over = True
 
 col_row_size=30
 spaces=10
@@ -146,57 +130,56 @@ prev_gen_snakes = []
 SCREEN_WIDTH = 390
 SCREEN_HEIGHT = 390
 
-pop_size = 2000
+pop_size = 1000
 
-controllers = create_controllers(pop_size)
+controller = game_control(col_row_size, spaces)
 gen = 0
 ga = GeneticAlgorithm()
+
 snakes = ga.initiate_population(snakes, pop_size)
 dead_snakes = []
 fittest_snakes_each_gen = []
 generation_length = 20
 max_score = 0
 
-for generation in range(generation_length):
-    max_score = 0
-    while len(snakes) != 0:
-        fittest_snakes_each_gen.append(snakes[0])
-        for snake, controller in zip(snakes, controllers):
+for generation in range(generation_length):                         # how many times the game will run
+    max_score = 0                                                   # for each generation max_score is initialized as zero
+    while len(snakes) != 0:                                         # while snakes list is not empty in other words as long as a snake is alive continue playing
+        fittest_snakes_each_gen.append(snakes[0])                   # a random snake is added to the list but later if a fitter snake is found they are replaced with this random snake
+        for snake in snakes:                                        # make every individual snake play the game
             snake.move()
             controller.check_snake(snake)
             inputs = controller.vision(snake)
             snake.predict(inputs)
             controller.check_death(snake)
-            snake.score += 1
-            snake.counter += 1
+            snake.counter += 1                                      # every frame snakes counter increases by one if reaches a threshold snake dies
+                                                                    # to reset the counter snake must eat
 
-            if snake.score > fittest_snakes_each_gen[generation].score:
-                fittest_snakes_each_gen[generation] = snake
-                max_score = snake.score
             if snake.game_over:
-                snakes.remove(snake)
-                dead_snakes.append(snake)
-                controllers.remove(controller)
-    else:
-        controllers = create_controllers(pop_size)
-        snakes = ga.roulette_wheel(dead_snakes)
-        dead_snakes.clear()
-        gen += 1
-        print("gen: {} max:{}".format(gen, max_score))
+
+                if snake.score > fittest_snakes_each_gen[generation].score:             # if current snake is better than the most fit previous snake
+                    fittest_snakes_each_gen[generation] = snake     # most fit snake is set as the current snake
+                    max_score = snake.score                         # max score of the generation is set as the current snakes score
+
+                snakes.remove(snake)                                # if snake is dead remove it from playing snakes list
+                dead_snakes.append(snake)                           # add it to the dead snakes list
+    print("gen: {} max:{}".format(gen, max_score))
+    snakes = ga.roulette_wheel(dead_snakes)                         # when all the snakes die perform a roulette wheel selection with the dead snakes
+    dead_snakes.clear()                                             # when our job ends with dead snakes we have to clean the list otherwise it will have snakes from other generations
+    gen += 1
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))     # set screen size
-clock = pygame.time.Clock()                                         # clock will be used for determining frames per second
 
 for generation in range(generation_length):
     current_snake = fittest_snakes_each_gen[generation]
     current_snake.reset()
-    controller = game_control(col_row_size, spaces)
     while not current_snake.game_over:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+
         screen.fill("black")
         current_snake.move()
         controller.draw(current_snake)
