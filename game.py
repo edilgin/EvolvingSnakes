@@ -117,7 +117,7 @@ class game_control:                                                 # write a cl
                 snake.game_over = True
         snake.counter += 1
 
-        if snake.counter > 120:
+        if snake.counter > 200:
             snake.game_over = True
 
 col_row_size=30
@@ -130,7 +130,7 @@ prev_gen_snakes = []
 SCREEN_WIDTH = 390
 SCREEN_HEIGHT = 390
 
-pop_size = 1000
+pop_size = 3000
 
 controller = game_control(col_row_size, spaces)
 gen = 0
@@ -139,7 +139,7 @@ ga = GeneticAlgorithm()
 snakes = ga.initiate_population(snakes, pop_size)
 dead_snakes = []
 fittest_snakes_each_gen = []
-generation_length = 20
+generation_length = 50
 max_score = 0
 
 for generation in range(generation_length):                         # how many times the game will run
@@ -164,7 +164,7 @@ for generation in range(generation_length):                         # how many t
                 snakes.remove(snake)                                # if snake is dead remove it from playing snakes list
                 dead_snakes.append(snake)                           # add it to the dead snakes list
     print("gen: {} max:{}".format(gen, max_score))
-    snakes = ga.roulette_wheel(dead_snakes)                         # when all the snakes die perform a roulette wheel selection with the dead snakes
+    snakes = ga.best_selection(dead_snakes)                         # when all the snakes die perform a roulette wheel selection with the dead snakes
     dead_snakes.clear()                                             # when our job ends with dead snakes we have to clean the list otherwise it will have snakes from other generations
     gen += 1
 
