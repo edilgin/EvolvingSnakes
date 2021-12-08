@@ -72,7 +72,7 @@ class GeneticAlgorithm:
         return snakes
 
 
-    def roulette_wheel(self, snakes, parent_ratio = 0.2, random_ratio = 0.1, breed_ratio=0.8, mutation_rate=0.07):
+    def roulette_wheel(self, snakes, parent_ratio = 0.3, random_ratio = 0.1, breed_ratio=0.8, mutation_rate=0.10):
         choosen = []
 
         pop_size = len(snakes)

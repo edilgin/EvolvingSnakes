@@ -21,7 +21,7 @@ class Snake:
         self.weights = weights
 
         # create the brain for the snake and initialize it
-        self.brain = NeuralNetwork([24, 15, 15, 4])
+        self.brain = NeuralNetwork([24, 20, 4])
 
         # this is the part where we can use a dead snakes parameters on a newly instantiated snake
         if len(self.weights) == 0:                  # if no weights are passed then create a new brain

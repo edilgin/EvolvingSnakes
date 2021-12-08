@@ -34,7 +34,7 @@ class game_control:                                                 # write a cl
         if  snake_x == food_x and  snake_y == food_y:
             snake.create_food()
             snake.add_node()
-            snake.score += 1
+            snake.score += 1000
             snake.counter = 0
 
     def vision(self, snake):
@@ -139,11 +139,13 @@ ga = GeneticAlgorithm()
 snakes = ga.initiate_population(snakes, pop_size)
 dead_snakes = []
 fittest_snakes_each_gen = []
-generation_length = 50
+generation_length = 80
 max_score = 0
-
+total_score = 0
 for generation in range(generation_length):                         # how many times the game will run
     max_score = 0                                                   # for each generation max_score is initialized as zero
+    print("average score: ", total_score / len(snakes),"\n______")
+    total_score = 0
     while len(snakes) != 0:                                         # while snakes list is not empty in other words as long as a snake is alive continue playing
         fittest_snakes_each_gen.append(snakes[0])                   # a random snake is added to the list but later if a fitter snake is found they are replaced with this random snake
         for snake in snakes:                                        # make every individual snake play the game
@@ -154,19 +156,19 @@ for generation in range(generation_length):                         # how many t
             controller.check_death(snake)
             snake.counter += 1                                      # every frame snakes counter increases by one if reaches a threshold snake dies
                                                                     # to reset the counter snake must eat
-
+            snake.score += 1
             if snake.game_over:
-
+                total_score += snake.score
                 if snake.score > fittest_snakes_each_gen[generation].score:             # if current snake is better than the most fit previous snake
                     fittest_snakes_each_gen[generation] = snake     # most fit snake is set as the current snake
                     max_score = snake.score                         # max score of the generation is set as the current snakes score
 
                 snakes.remove(snake)                                # if snake is dead remove it from playing snakes list
                 dead_snakes.append(snake)                           # add it to the dead snakes list
-    print("gen: {} max:{}".format(gen, max_score))
     snakes = ga.best_selection(dead_snakes)                         # when all the snakes die perform a roulette wheel selection with the dead snakes
     dead_snakes.clear()                                             # when our job ends with dead snakes we have to clean the list otherwise it will have snakes from other generations
     gen += 1
+    print("gen: {} max:{}".format(gen, max_score))
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))     # set screen size
